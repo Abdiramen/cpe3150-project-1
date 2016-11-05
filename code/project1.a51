@@ -13,7 +13,7 @@
     MOV P1M2, #00H
     MOV P0M1, #00H
     MOV P0M2, #00H
-	
+
 MAIN:
 	JB P2.0, NO_DEC
 
@@ -87,7 +87,13 @@ RAND8B:	ANL	A, #10111000B
 	MOV A, B
 
 	RET
-	
+
+; enables a row of lights with a delay of ~75 ms 
+; read documenation how this works, but for now a quick summary..
+; mov into A bit-string for the first 8 lights
+; move into c for the ninth light
+; i.e. A = 10101010 C = 1
+; enables a huge X of lights
 LIGHTS:
 	CPL A
 	CPL C
@@ -124,11 +130,14 @@ LIGHTS:
 	ACALL EDELAY
 	
 	RET
-
+	
+; envokes a timer delay
+; A = high, B = 0
+; use formula from class to determine dla
 DELAY:
 	MOV TMOD, #01D
-	MOV TL0, A
-	MOV TH0, B
+	MOV TL0, B
+	MOV TH0, A
 	
 	SETB TR0
 	
@@ -139,14 +148,19 @@ DLLOOP:
 	CLR TF0
 	
 	RET
-	
+
+; Extended delay, uses timers on the 8051
+; A = high of the timer, B = low of the timer
+; And R7 is the multiple of iterations
+; it's basically DELAY * SOME CONSTANT
 EDELAY:
-	
 EDLOOP:
 	ACALL DELAY
 	DJNZ R7, EDLOOP
 	RET
-	
+
+; USES REGISTERS A, B, R6, R7
+; light sequence for the next level
 NEXTLEVEL:
 	MOV R6, #2D
 LLOOP:
@@ -168,7 +182,10 @@ LLOOP:
 	ACALL LIGHTS
 	
 	RET
-	
+
+; USES REGISTERS R6, R7, A, B
+; light sequence for the losing state
+; bright flash of lights twice
 LOST:
 	MOV R6, #2D
 
@@ -186,7 +203,9 @@ LOLOOP:
 	DJNZ R6, LOLOOP
 	
 	RET
-	
+
+; USES REGISTERS R6, R7, A, B
+; light sequence for the winning state
 WINNER:
 	/* LIGHT SPIRAL PART I	*/
 	MOV R6, #3D
@@ -383,7 +402,7 @@ L3:
 	MOV R7, 6
 	ACALL LIGHTS
 	
-		/* C'mon Kage, bring the thundaaa */
+	/* C'mon Kage, bring the thundaaa */
 	MOV R6, #6D
 	MOV R5, #3D
 	
@@ -459,7 +478,7 @@ L4:
 	ACALL LIGHTS
 	
 	DJNZ R5, L4
-	
-	
 	RET
+	
+	
 	END
